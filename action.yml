@@ -1,0 +1,16 @@
+name: Link changed markdown
+description: Provide a comment linking to the rendered forms of any added / updated / deleted markdown files
+branding:
+  icon: link
+  color: green
+inputs:
+  github_token:
+    description: 'GITHUB_TOKEN'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - run: ${{ github.action_path }}/run.rb
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}

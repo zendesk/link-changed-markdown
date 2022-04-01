@@ -1,0 +1,14 @@
+---
+name: Link changed markdown
+on:
+  pull_request:
+    types: [opened, synchronize, push]
+
+jobs:
+  link-changed-markdown:
+    runs-on: [ubuntu-latest]
+    name: Link changed markdown
+    steps:
+      - uses: zendesk/link-changed-markdown@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
