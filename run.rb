@@ -79,13 +79,7 @@ def find_changed_files
   # TODO: pagination
   changes = get(event.fetch("pull_request").fetch("url") + "/files?per_page=100")
 
-  markdown_changes = changes.select { |c| c.fetch("filename").end_with?(".md") }
-
-  # return array of [filename, exists_on_base, exists_on_head]
-  markdown_changes.map do |c|
-    status = c.fetch("status")
-    [c.fetch("filename"), (status != "added"), (status != "removed")]
-  end
+  changes.select { |c| c.fetch("filename").end_with?(".md") }.sort_by { |c| c.fetch("filename") }
 end
 
 def build_comment(changed_markdown_files)
@@ -104,19 +98,23 @@ def build_comment(changed_markdown_files)
   base_url = "#{base.fetch("repo").fetch("html_url")}/blob/#{base.fetch("ref")}"
   head_url = "#{head.fetch("repo").fetch("html_url")}/blob/#{head.fetch("ref")}"
 
-  sorted_changes = changed_markdown_files.sort_by(&:first)
+  sorted_changes = changed_markdown_files
 
-  sorted_changes.take(MAX_LISTED).each do |(filename, exists_on_base, exists_on_head)|
-    line = if exists_on_head && !exists_on_base
-      # create
-      "* added: [#{filename}](#{head_url}/#{filename})"
-    elsif exists_on_head
-      # update
-      "* updated: [#{filename}](#{head_url}/#{filename}) ([view this on the base branch](#{base_url}/#{filename}))"
-    else
-      # delete
-      "* removed: #{filename} ([view this on the base branch](#{base_url}/#{filename}))"
-    end
+  sorted_changes.take(MAX_LISTED).each do |change|
+    filename = change.fetch("filename")
+    status = change.fetch("status")
+
+    head_link = "[#{filename}](#{head_url}/#{filename})"
+    base_link = "[view this on the base branch](#{base_url}/#{filename})"
+
+    line = case status
+           when "added"
+             "* added: #{head_link}"
+           when "modified"
+             "* modified: #{head_link} (#{base_link})"
+           when "removed"
+             "* removed: #{filename} (#{base_link})"
+           end
 
     text += "#{line}\n"
   end
