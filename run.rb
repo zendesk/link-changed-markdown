@@ -79,10 +79,12 @@ def find_changed_files
   # TODO: pagination
   changes = get(event.fetch("pull_request").fetch("url") + "/files?per_page=100")
 
-  changes.select { |c| c.fetch("filename").end_with?(".md") }.sort_by { |c| c.fetch("filename") }
+  changes.select { |c| c.fetch("filename").end_with?(".md") && c.fetch("status") != "renamed" }
+    .sort_by { |c| c.fetch("filename") }
 end
 
 def build_comment(changed_markdown_files)
+  puts "Building comment about #{changed_markdown_files.count} changed files"
   return nil if changed_markdown_files.empty?
 
   text = <<~COMMENT
@@ -114,6 +116,8 @@ def build_comment(changed_markdown_files)
              "* modified: #{head_link} (#{base_link})"
            when "removed"
              "* removed: #{filename} (#{base_link})"
+           else
+             "* ? #{status.inspect}"
            end
 
     text += "#{line}\n"
@@ -134,17 +138,28 @@ def find_existing_comment
   url += "?per_page=100"
 
   comments = get(url)
-  comments.find { |c| c.fetch("body").include?(MAGIC_TEXT) }
+  comment = comments.find { |c| c.fetch("body").include?(MAGIC_TEXT) }
+
+  if comment
+    puts "Found existing comment #{comment.fetch("url")}"
+  else
+    puts "No existing comment"
+  end
+
+  comment
 end
 
 def update_pr(comment_text, existing_comment)
   if !comment_text.nil? && existing_comment.nil?
     url = event.fetch("pull_request").fetch("comments_url")
-    post(url, { body: comment_text })
+    c = post(url, { body: comment_text })
+    puts "Created comment #{c.fetch("url")}"
   elsif !comment_text.nil?
-    patch(existing_comment.fetch("url"), { body: comment_text })
+    c = patch(existing_comment.fetch("url"), { body: comment_text })
+    puts "Updated comment #{c.fetch("url")}"
   elsif existing_comment
     delete(existing_comment.fetch("url"))
+    puts "Deleted comment #{existing_comment.fetch("url")}"
   end
 end
 
