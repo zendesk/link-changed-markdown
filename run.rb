@@ -155,8 +155,12 @@ def update_pr(comment_text, existing_comment)
     c = post(url, { body: comment_text })
     puts "Created comment #{c.fetch("url")}"
   elsif !comment_text.nil?
-    c = patch(existing_comment.fetch("url"), { body: comment_text })
-    puts "Updated comment #{c.fetch("url")}"
+    if existing_comment.fetch("body") == comment_text
+      puts "Comment is already correct"
+    else
+      c = patch(existing_comment.fetch("url"), { body: comment_text })
+      puts "Updated comment #{c.fetch("url")}"
+    end
   elsif existing_comment
     delete(existing_comment.fetch("url"))
     puts "Deleted comment #{existing_comment.fetch("url")}"
