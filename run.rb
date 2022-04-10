@@ -79,16 +79,12 @@ def find_changed_files
   # TODO: pagination
   changes = get(event.fetch("pull_request").fetch("url") + "/files?per_page=100")
 
-  markdown_changes = changes.select { |c| c.fetch("filename").end_with?(".md") }
-
-  # return array of [filename, exists_on_base, exists_on_head]
-  markdown_changes.map do |c|
-    status = c.fetch("status")
-    [c.fetch("filename"), (status != "added"), (status != "removed")]
-  end
+  changes.select { |c| c.fetch("filename").end_with?(".md") && c.fetch("status") != "renamed" }
+    .sort_by { |c| c.fetch("filename") }
 end
 
 def build_comment(changed_markdown_files)
+  puts "Building comment about #{changed_markdown_files.count} changed files"
   return nil if changed_markdown_files.empty?
 
   text = <<~COMMENT
@@ -104,19 +100,25 @@ def build_comment(changed_markdown_files)
   base_url = "#{base.fetch("repo").fetch("html_url")}/blob/#{base.fetch("ref")}"
   head_url = "#{head.fetch("repo").fetch("html_url")}/blob/#{head.fetch("ref")}"
 
-  sorted_changes = changed_markdown_files.sort_by(&:first)
+  sorted_changes = changed_markdown_files
 
-  sorted_changes.take(MAX_LISTED).each do |(filename, exists_on_base, exists_on_head)|
-    line = if exists_on_head && !exists_on_base
-      # create
-      "* added: [#{filename}](#{head_url}/#{filename})"
-    elsif exists_on_head
-      # update
-      "* updated: [#{filename}](#{head_url}/#{filename}) ([view this on the base branch](#{base_url}/#{filename}))"
-    else
-      # delete
-      "* removed: #{filename} ([view this on the base branch](#{base_url}/#{filename}))"
-    end
+  sorted_changes.take(MAX_LISTED).each do |change|
+    filename = change.fetch("filename")
+    status = change.fetch("status")
+
+    head_link = "[#{filename}](#{head_url}/#{filename})"
+    base_link = "[view this on the base branch](#{base_url}/#{filename})"
+
+    line = case status
+           when "added"
+             "* added: #{head_link}"
+           when "modified"
+             "* modified: #{head_link} (#{base_link})"
+           when "removed"
+             "* removed: #{filename} (#{base_link})"
+           else
+             "* ? #{status.inspect}"
+           end
 
     text += "#{line}\n"
   end
@@ -136,17 +138,32 @@ def find_existing_comment
   url += "?per_page=100"
 
   comments = get(url)
-  comments.find { |c| c.fetch("body").include?(MAGIC_TEXT) }
+  comment = comments.find { |c| c.fetch("body").include?(MAGIC_TEXT) }
+
+  if comment
+    puts "Found existing comment #{comment.fetch("url")}"
+  else
+    puts "No existing comment"
+  end
+
+  comment
 end
 
 def update_pr(comment_text, existing_comment)
   if !comment_text.nil? && existing_comment.nil?
     url = event.fetch("pull_request").fetch("comments_url")
-    post(url, { body: comment_text })
+    c = post(url, { body: comment_text })
+    puts "Created comment #{c.fetch("url")}"
   elsif !comment_text.nil?
-    patch(existing_comment.fetch("url"), { body: comment_text })
+    if existing_comment.fetch("body") == comment_text
+      puts "Comment is already correct"
+    else
+      c = patch(existing_comment.fetch("url"), { body: comment_text })
+      puts "Updated comment #{c.fetch("url")}"
+    end
   elsif existing_comment
     delete(existing_comment.fetch("url"))
+    puts "Deleted comment #{existing_comment.fetch("url")}"
   end
 end
 
