@@ -24,7 +24,7 @@ This action has no outputs.
 name: Link changed markdown
 on:
   pull_request:
-    types: [opened, synchronize, push]
+    types: [opened, synchronize]
 
 jobs:
   link-changed-markdown:
