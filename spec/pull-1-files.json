@@ -1,0 +1,26 @@
+[
+  {
+    "sha": "2879a74926bc3ccda52c388af310661b26cebcfb",
+    "filename": "README.md",
+    "status": "modified",
+    "additions": 2,
+    "deletions": 0,
+    "changes": 2,
+    "blob_url": "https://github.com/zendesk/link-changed-markdown/blob/2d280fef61d843e1db9f0e49da68b861d1578612/README.md",
+    "raw_url": "https://github.com/zendesk/link-changed-markdown/raw/2d280fef61d843e1db9f0e49da68b861d1578612/README.md",
+    "contents_url": "https://api.github.com/repos/zendesk/link-changed-markdown/contents/README.md?ref=2d280fef61d843e1db9f0e49da68b861d1578612",
+    "patch": "@@ -38,3 +38,5 @@ jobs:\n \n where VERSION is the version you wish you use, e.g. `v1` (or a branch, or a commit hash).\n Check the top of this readme to find the latest release.\n+\n+a change"
+  },
+  {
+    "sha": "587be6b4c3f93f93c489c0111bba5596147a26cb",
+    "filename": "new.md",
+    "status": "added",
+    "additions": 1,
+    "deletions": 0,
+    "changes": 1,
+    "blob_url": "https://github.com/zendesk/link-changed-markdown/blob/2d280fef61d843e1db9f0e49da68b861d1578612/new.md",
+    "raw_url": "https://github.com/zendesk/link-changed-markdown/raw/2d280fef61d843e1db9f0e49da68b861d1578612/new.md",
+    "contents_url": "https://api.github.com/repos/zendesk/link-changed-markdown/contents/new.md?ref=2d280fef61d843e1db9f0e49da68b861d1578612",
+    "patch": "@@ -0,0 +1 @@\n+x"
+  }
+]
