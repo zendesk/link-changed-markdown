@@ -8,7 +8,7 @@ GEM
       ast (~> 2.4.1)
     rainbow (3.1.1)
     regexp_parser (2.2.1)
-    rexml (3.2.5)
+    rexml (3.4.4)
     rspec (3.11.0)
       rspec-core (~> 3.11.0)
       rspec-expectations (~> 3.11.0)
@@ -50,4 +50,4 @@ DEPENDENCIES
   rubocop-rspec (~> 2.8)
 
 BUNDLED WITH
-   2.3.8
+   2.4.22
