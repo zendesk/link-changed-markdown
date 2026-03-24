@@ -4,7 +4,7 @@
 # (Using Javascript would fit better with the Github platform:
 # https://docs.github.com/en/actions/creating-actions/creating-a-javascript-action)
 
-require_relative './comment_builder'
+require_relative 'comment_builder'
 
 class CommentWriter
   def initialize(event, github_client)
